@@ -167,7 +167,7 @@ from sklearn.model_selection import StratifiedKFold
 
 from sklearn.ensemble import RandomForestClassifier
 parameters = {'n_estimators': [50, 100, 150,],
-              'max_depth': [2, 4, 5, 10, 12, 14],
+              'max_depth': [2, 4, 10, 12, 14],
               'min_samples_split': [8, 12, 20],
               'min_samples_leaf': [2, 4, 8],
               }
@@ -191,7 +191,7 @@ print('recall-', recall_score(y_test, y_pred))
 
 shap.summary_plot(shap_values[1], X_test, plot_type='bar')
 
-#shap.summary_plot(shap_values[1], X_val)
+shap.summary_plot(shap_values[1], X_test)
 
 #shap.dependence_plot('age', shap_values[1], X_val)
 
@@ -203,11 +203,11 @@ shap.force_plot(explainer.expected_value[1], shap_values[1], X_test)
 """#GradienBoosting"""
 
 from sklearn.ensemble import GradientBoostingClassifier
-parameters = {'learning_rate' : [0.1, 0.2, 0.4, 0.5, 1],
+parameters = {'learning_rate' : [0.1, 0.2, 0.4],
               'n_estimators': [50, 100, 150],
-              'max_depth': [2, 4, 8, 10, 12, 14],
+              'max_depth': [2, 4, 8],
               'min_samples_split': [8, 12, 20],
-              'min_samples_leaf': [2, 4, 8],
+              'min_samples_leaf': [2, 4],
               }
 gbc = GridSearchCV(GradientBoostingClassifier(random_state = 2), parameters, cv = cv_stratify, scoring = 'f1')
 gbc.fit(X_train, y_train)
