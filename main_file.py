@@ -166,10 +166,10 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedKFold
 
 from sklearn.ensemble import RandomForestClassifier
-parameters = {'n_estimators': [85, 90, 100,],
+parameters = {'n_estimators': [50, 100, 150,],
               'max_depth': [2, 4, 5, 10, 12, 14],
-              'min_samples_split': [2, 4],
-              'min_samples_leaf': [1, 2, 4],
+              'min_samples_split': [8, 12, 20],
+              'min_samples_leaf': [2, 4, 8],
               }
 cv_stratify = StratifiedKFold(n_splits = 5, shuffle = True, random_state = 3)
 rfc = GridSearchCV(RandomForestClassifier(random_state = 2), parameters, cv = cv_stratify, scoring = 'f1')
@@ -183,11 +183,11 @@ shap_values = explainer.shap_values(X_test)
 # pd.DataFrame(shap_values).head(3)
 
 print('RandomForest test')
-y_pred_test = rfc.best_estimator_.predict(X_test)
-print('f1-',f1_score(y_test, y_pred_test))
-print('accuarcy-', accuracy_score(y_test, y_pred_test))
-print('precision-', precision_score(y_test, y_pred_test))
-print('recall-', recall_score(y_test, y_pred_test))
+y_pred = rfc.best_estimator_.predict(X_test)
+print('f1-',f1_score(y_test, y_pred))
+print('accuarcy-', accuracy_score(y_test, y_pred))
+print('precision-', precision_score(y_test, y_pred))
+print('recall-', recall_score(y_test, y_pred))
 
 shap.summary_plot(shap_values[1], X_test, plot_type='bar')
 
@@ -203,39 +203,25 @@ shap.force_plot(explainer.expected_value[1], shap_values[1], X_test)
 """#GradienBoosting"""
 
 from sklearn.ensemble import GradientBoostingClassifier
-
-gbc = GradientBoostingClassifier(loss='log_loss',
-                                 random_state=1,
-                                 learning_rate=0.1,
-                                 n_estimators=100,
-                                 subsample=0.8,
-                                 criterion='friedman_mse',
-                                 min_samples_split=2,
-                                 min_samples_leaf=1,
-                                 min_weight_fraction_leaf=0.0,
-                                 max_depth=3,
-                                 max_features=1.0,
-                                 max_leaf_nodes=8)
+parameters = {'learning_rate' : [0.1, 0.2, 0.4, 0.5, 1],
+              'n_estimators': [50, 100, 150],
+              'max_depth': [2, 4, 8, 10, 12, 14],
+              'min_samples_split': [8, 12, 20],
+              'min_samples_leaf': [2, 4, 8],
+              }
+gbc = GridSearchCV(GradientBoostingClassifier(random_state = 2), parameters, cv = cv_stratify, scoring = 'f1')
 gbc.fit(X_train, y_train)
+print(gbc.best_params_)
+print(gbc.best_score_)
 
-y_pred_val = gbc.predict(X_val)
+y_pred = gbc.best_estimator_.predict(X_test)
 print('Gradient Boosting test')
-print('f1-', f1_score(y_val, y_pred_val))
-print('accuarcy-', accuracy_score(y_val, y_pred_val))
-print('precision-', precision_score(y_val, y_pred_val))
-print('recall-', recall_score(y_val, y_pred_val))
+print('f1-', f1_score(y_test, y_pred))
+print('accuarcy-', accuracy_score(y_test, y_pred))
+print('precision-', precision_score(y_test, y_pred))
+print('recall-', recall_score(y_test, y_pred))
 
-y_pred_test = gbc.predict(X_test)
-print('Gradient Boosting test')
-print('f1-', f1_score(y_test, y_pred_test))
-print('accuarcy-', accuracy_score(y_test, y_pred_test))
-print('precision-', precision_score(y_test, y_pred_test))
-print('recall-', recall_score(y_test, y_pred_test))
-
-gbc.fit(X_train, y_train)
-y_pred = gbc.predict(X_test)
-
-explainer = shap.TreeExplainer(gbc)
+explainer = shap.TreeExplainer(gbc.best_estimator_)
 shap_values = explainer.shap_values(X_test)
 
 shap.initjs()
@@ -252,4 +238,4 @@ gbc.predict_proba(X_test)
 
 gbc.predict(X_test)
 
-p.dump([dtc, gbc], open("startup_prediction_saved.p", "wb"))
+p.dump([rfc.best_estimator_, gbc.best_estimator_], open("startup_prediction_saved.p", "wb"))
